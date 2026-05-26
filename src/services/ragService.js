@@ -1,21 +1,25 @@
 import supabase from "../config/supabase.js";
 import { generarEmbedding } from "./ollamaService.js";
 
-export async function guardarDocumento(texto) {
-  const embedding = await generarEmbedding(texto);
+export async function guardarChunks(chunks) {
 
-  const { data, error } = await supabase
-    .from("documents")
-    .insert({
-      content: texto,
-      embedding
-    });
+  for (const chunk of chunks) {
 
-  if (error) {
-    throw error;
+    const texto = chunk.pageContent;
+
+    const embedding = await generarEmbedding(texto);
+
+    const { error } = await supabase
+      .from("documents")
+      .insert({
+        content: texto,
+        embedding
+      });
+
+    if (error) {
+      console.log(error);
+    }
   }
-
-  return data;
 }
 
 export async function buscarSimilares(texto) {

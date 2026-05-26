@@ -1,9 +1,30 @@
-import fs from "fs";
-import pdf from "pdf-parse";
+import { PDFLoader }
+from "@langchain/community/document_loaders/fs/pdf";
 
-export async function extractPdfText(path) {
-  const dataBuffer = fs.readFileSync(path);
-  const data = await pdf(dataBuffer);
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
-  return data.text;
+export async function procesarPDF(path) {
+
+  const loader = new PDFLoader(path);
+
+  const docs = await loader.load();
+
+  const splitter = new RecursiveCharacterTextSplitter({
+
+  chunkSize: 400,
+
+  chunkOverlap: 80,
+
+  separators: [
+    "\n\n", // párrafos
+    "\n",   // líneas
+    ". ",   // oraciones
+    " ",    // palabras
+  ]
+});
+
+  const chunks =
+    await splitter.splitDocuments(docs);
+
+  return chunks;
 }

@@ -1,42 +1,72 @@
-import supabase from "../config/supabase.js";
-import { generarEmbedding } from "./ollamaService.js";
+import { supabase }
+from "../config/supabase.js";
 
-export async function guardarChunks(chunks) {
+import { generarEmbedding }
+from "./embeddingService.js";
+
+export async function guardarChunks(
+  chunks
+) {
+
+  console.log(
+    "TOTAL CHUNKS:",
+    chunks.length
+  );
 
   for (const chunk of chunks) {
 
-    const texto = chunk.pageContent;
+    try {
 
-    const embedding = await generarEmbedding(texto);
+      const texto = chunk.pageContent?.trim();
 
-    const { error } = await supabase
-      .from("documents")
-      .insert({
-        content: texto,
-        embedding
-      });
+      console.log(
+        "CHUNK:",
+        texto
+      );
 
-    if (error) {
+      if (!texto) {
+
+        console.log(
+          "VACÍO"
+        );
+
+        continue;
+      }
+
+      console.log(
+        "Generando embedding..."
+      );
+
+      const embedding =
+        await generarEmbedding(
+          texto
+        );
+
+      console.log(
+        "Embedding generado:",
+        embedding?.length
+      );
+
+      const { data, error } =
+        await supabase
+          .from("documents")
+          .insert({
+            content: texto,
+            embedding
+          });
+
+      console.log(
+        "INSERT:",
+        data
+      );
+
+      if (error) {
+        console.log(error);
+      }
+
+    } catch (error) {
+
       console.log(error);
     }
   }
-}
-
-export async function buscarSimilares(texto) {
-  const embedding = await generarEmbedding(texto);
-
-  const { data, error } = await supabase.rpc(
-    "match_documents",
-    {
-      query_embedding: embedding,
-      match_threshold: 0.5,
-      match_count: 5
-    }
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
 }

@@ -1,20 +1,21 @@
 import express from "express";
+
 import multer from "multer";
 
-import { procesarPDF }
-  from "../services/pdfService.js";
-
-import { guardarChunks }
-  from "../services/ragService.js";
+import { leerExcel }
+from "../services/excelService.js";
 
 import { generarEmbedding }
-  from "../services/embeddingService.js";
-
-import { buscarSimilares }
-  from "../services/vectorService.js";
+from "../services/embeddingService.js";
 
 import { generarRespuesta }
-  from "../services/chatService.js";
+from "../services/chatService.js";
+
+import { buscarSimilares }
+from "../services/vectorService.js";
+
+import { supabase }
+from "../config/supabase.js";
 
 const router = express.Router();
 
@@ -22,30 +23,57 @@ const upload = multer({
   dest: "src/uploads/"
 });
 
-
-// =========================
-// SUBIR PDF
-// =========================
-
-router.post(
-  "/upload-pdf",
-  upload.single("pdf"),
-
-  async (req, res) => {
-
+router.post("/upload-excel",upload.single("excel"), async (req, res) => {
     try {
 
-      const chunks =
-        await procesarPDF(req.file.path);
+      const filas =
+        leerExcel(req.file.path);
 
-      await guardarChunks(chunks);
+      for (const fila of filas) {
+
+        const texto = `
+
+Categoria:
+${fila.CATEGORIA}
+
+Seccion:
+${fila.SECCION}
+
+Titulo:
+${fila.TITULO}
+
+Contenido:
+${fila.CONTENIDO}
+
+`;
+
+        const embedding =
+          await generarEmbedding(texto);
+
+        await supabase
+          .from("documentos")
+          .insert({
+
+            categoria:
+              fila.CATEGORIA,
+
+            seccion:
+              fila.SECCION,
+
+            titulo:
+              fila.TITULO,
+
+            contenido:
+              fila.CONTENIDO,
+
+            embedding
+
+          });
+      }
 
       res.json({
         message:
-          "PDF procesado correctamente",
-
-        totalChunks:
-          chunks.length
+          "Excel procesado"
       });
 
     } catch (error) {
@@ -59,52 +87,32 @@ router.post(
   }
 );
 
-
-// =========================
-// PREGUNTAR
-// =========================
-
 router.post(
   "/preguntar",
-
   async (req, res) => {
 
     try {
 
       const { pregunta } = req.body;
 
-      // embedding pregunta
-      const embedding =
-        await generarEmbedding(
-          pregunta
-        );
+      const embedding = await generarEmbedding(pregunta);
 
-      // buscar similares
       const resultados = await buscarSimilares(embedding);
 
-      console.log("resultado "+resultados[0].similarity);
-
-      if (
-        resultados.length === 0 ||
-        resultados[0].similarity < 0.55
-      ) {
-
+      /*if (resultados.length === 0) {
         return res.json({
-          pregunta,
           respuesta:
-            "No encontré información relacionada en el documento.",
-          contexto: []
+            "No encontré información relacionada."
         });
-      }
+      }*/
 
-      // unir contexto
       const contexto =
         resultados
-          .map(r => r.content)
-          .join("\n\n")
-          .slice(0, 800);
+          .map(r =>
+            r.contenido
+          )
+          .join("\n\n");
 
-      // generar respuesta IA
       const respuesta =
         await generarRespuesta(
           pregunta,
@@ -112,9 +120,13 @@ router.post(
         );
 
       res.json({
+
         pregunta,
+
         respuesta,
+
         contexto: resultados
+
       });
 
     } catch (error) {
@@ -129,42 +141,3 @@ router.post(
 );
 
 export default router;
-
-
-
-/*
-
-
-router.post("/guardar", async (req, res) => {
-  try {
-    const { texto } = req.body;
-
-    const data = await guardarDocumento(texto);
-
-    res.json(data);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      error: error.message
-    });
-  }
-});
-
-router.post("/buscar", async (req, res) => {
-  try {
-    const { texto } = req.body;
-
-    const data = await buscarSimilares(texto);
-
-    res.json(data);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      error: error.message
-    });
-  }
-});
-
-export default router;
-
-*/

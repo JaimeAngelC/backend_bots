@@ -1,34 +1,23 @@
-export async function generarRespuesta(
-  pregunta,
-  contexto
-) {
+export async function generarRespuesta(pregunta,contexto) {
 
-  console.log(
-    "Consultando gemma..."
-  );
+  console.log("Consultando a la ia la respuesta estructurada...");
+  
 
-  const prompt = `
-Eres un asistente virtual profesional del SENAVEX.
+const prompt = `
 
-Tu trabajo es responder de manera:
-- natural
-- amigable
-- clara
-- como ChatGPT
+Eres un asistente virtual del SENAVEX.
 
-Debes explicar la respuesta usando SOLO la información del contexto.
+Debes responder únicamente usando la información del CONTEXTO.
 
-NO copies literalmente el texto.
-NO respondas solo con listas.
-NO inventes información.
+Si el contexto tiene información relacionada:
+- responde normalmente
+- resume claramente
+- usa listas si hay requisitos
 
-Si la información existe:
-- explica primero en una oración
-- luego muestra los requisitos organizados
+Si el contexto NO contiene información:
+responde EXACTAMENTE:
 
-Si no existe:
-responde:
-"No encontré esa información en el documento."
+No encontré información relacionada.
 
 CONTEXTO:
 ${contexto}
@@ -37,7 +26,11 @@ PREGUNTA:
 ${pregunta}
 
 RESPUESTA:
+
 `;
+
+console.log("\nCONTEXTO:");
+console.log(contexto);
 
   const response =
     await fetch(
@@ -49,7 +42,8 @@ RESPUESTA:
             "application/json"
         },
         body: JSON.stringify({
-          model: "gemma3:1b",
+          model: "qwen2.5:1.5b",
+          /*model: "gemma3:1b",*/
           /*model: "gemma3:4b",*/
           /*model: "llama3:8b",*/
 

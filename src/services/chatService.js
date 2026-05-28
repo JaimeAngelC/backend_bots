@@ -49,8 +49,9 @@ RESPUESTA:
             "application/json"
         },
         body: JSON.stringify({
-
-          model: "gemma3:4b",
+          model: "gemma3:1b",
+          /*model: "gemma3:4b",*/
+          /*model: "llama3:8b",*/
 
           prompt,
 

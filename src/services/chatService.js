@@ -42,8 +42,8 @@ console.log(contexto);
             "application/json"
         },
         body: JSON.stringify({
-          model: "qwen2.5:1.5b",
-          /*model: "gemma3:1b",*/
+          /*model: "qwen2.5:1.5b",*/
+          model: "gemma3:1b",
           /*model: "gemma3:4b",*/
           /*model: "llama3:8b",*/
 

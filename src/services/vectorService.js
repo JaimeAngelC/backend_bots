@@ -9,7 +9,7 @@ export async function buscarSimilares(embedding,categoria = null) {
       {
         query_embedding: embedding,
         match_threshold: 0.55,
-        match_count: 1
+        match_count: 3
       }
     );
 

@@ -1,9 +1,10 @@
 import { PDFLoader }
 from "@langchain/community/document_loaders/fs/pdf";
 
-export async function procesarPDF(
-  path
-) {
+import { RecursiveCharacterTextSplitter }
+from "@langchain/textsplitters";
+
+export async function procesarPDF(path) {
 
   const loader =
     new PDFLoader(path);
@@ -11,5 +12,33 @@ export async function procesarPDF(
   const docs =
     await loader.load();
 
-  return docs;
+  const splitter =
+    new RecursiveCharacterTextSplitter({
+
+      chunkSize: 450,
+
+      chunkOverlap: 50,
+
+      separators: [
+        "\n\n",
+        "\n",
+        ". ",
+        ";",
+        ":",
+        " "
+      ]
+    });
+
+  const chunks =
+    await splitter.splitDocuments(docs);
+
+  return chunks.map(chunk => ({
+
+    contenido: chunk.pageContent
+      .replace(/\r/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+
+  }));
+
 }

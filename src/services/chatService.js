@@ -144,24 +144,24 @@ console.log(contexto);
         },
         body: JSON.stringify({
           /*model: "qwen2.5:1.5b",*/
-          /*model: "gemma3:1b",*/
-          /*model: "gemma3:4b",*/
-          /*model: "llama3:8b",
+/*model: "gemma3:1b",*/
+/*model: "gemma3:4b",*/
+/*model: "llama3:8b",
 
-          prompt,
+prompt,
 
-          stream: false
-        })
-      }
-    );
+stream: false
+})
+}
+);
 
-  const data =
-    await response.json();
+const data =
+await response.json();
 
-  return data.response
-  .replace(/\\n/g, "\n")
-  .replace(/\n{3,}/g, "\n\n")
-  .trim();
+return data.response
+.replace(/\\n/g, "\n")
+.replace(/\n{3,}/g, "\n\n")
+.trim();
 }
 
 */
